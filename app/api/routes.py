@@ -15,7 +15,8 @@ router = APIRouter()
 @router.post("/auth/login", response_model=Token)
 async def login(payload: Login, db: AsyncSession = Depends(get_session)):
     user = await UserRepository.get_user_by_email(payload.email, db)
-    if not user or not verify_password(payload.password, user.hashed_password): raise HTTPException(401, "Incorrect email or password")
+    if not user or not verify_password(payload.password, user.hashed_password): 
+        raise HTTPException(401, "Incorrect email or password")
     return Token(access_token=create_token(user.email, user.role))
 
 @router.get("/vendors")
