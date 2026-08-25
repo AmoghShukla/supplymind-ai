@@ -8,7 +8,7 @@ from ..models import Approval, Incident, Shipment, User, Vendor
 from ..schemas.common import ApprovalDecision, IncidentCreate, Login, RunRequest, ShipmentCreate, Token, VendorCreate
 from ..agents.orchestrator import run_pipeline
 from ..models import AgentRun
-from ..repository import UserRepository
+from ..repository import UserRepository, VendorRepository
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ async def login(payload: Login, db: AsyncSession = Depends(get_session)):
 
 @router.get("/vendors")
 async def vendors(_: User = Depends(current_user), db: AsyncSession = Depends(get_session)): 
-    return (await db.scalars(select(Vendor))).all()
+    return await VendorRepository.get_all_vendors(db)
 
 @router.post("/vendors")
 async def create_vendor(data: VendorCreate, _: User = Depends(require_roles("admin", "analyst")), db: AsyncSession = Depends(get_session)):
