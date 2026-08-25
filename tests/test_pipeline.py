@@ -6,8 +6,10 @@ from app.models import Base
 from app.seed import seed
 from app.agents.orchestrator import run_pipeline
 @pytest.mark.asyncio
+
 async def test_seeded_delay_creates_approval():
-    async with engine.begin() as connection: await connection.run_sync(Base.metadata.create_all)
+    async with engine.begin() as connection: 
+        await connection.run_sync(Base.metadata.create_all)
     await seed()
     async with SessionLocal() as db:
         output = await run_pipeline(db, 1)
