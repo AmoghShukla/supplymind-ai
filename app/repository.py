@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.entities import Shipment, User, Vendor
+from app.models.entities import Incident, Shipment, User, Vendor
 
 class UserRepository:
 
@@ -42,4 +42,20 @@ class ShipmentRepository:
         statement = select(Shipment)
         shipment = db.execute(statement)
         return shipment.scalars().all()
+
+class IncidentRepository:
+
+    @staticmethod
+    async def create_incident(data, db : AsyncSession):
+        item = Shipment(**data.model_dump())
+        db.add(item)
+        await db.commit()
+        await db.refresh(item)
+        return item
+
+    @staticmethod
+    async def get_all_incidents(db : AsyncSession):
+        statement = select(Incident)
+        incident = db.execute(statement)
+        return incident.scalars().all()
 
