@@ -8,7 +8,7 @@ from ..models import Approval, Incident, Shipment, User, Vendor
 from ..schemas.common import ApprovalDecision, IncidentCreate, Login, RunRequest, ShipmentCreate, Token, VendorCreate
 from ..agents.orchestrator import run_pipeline
 from ..models import AgentRun
-from ..repository import ShipmentRepository, UserRepository, VendorRepository
+from ..repository import IncidentRepository, ShipmentRepository, UserRepository, VendorRepository
 
 router = APIRouter()
 
@@ -35,20 +35,17 @@ async def create_shipment(data: ShipmentCreate, _: User = Depends(require_roles(
 async def shipments(_: User = Depends(current_user), db: AsyncSession = Depends(get_session)): 
     return await ShipmentRepository.get_all_shipments(db)
 
-
-@router.get("/incidents")
-async def incidents(q: str | None = None, _: User = Depends(current_user), db: AsyncSession = Depends(get_session)):
-    statement = select(Incident)
-    if q: statement = statement.where(Incident.description.ilike(f"%{q}%"))
-    return (await db.scalars(statement)).all()
-
 @router.post("/incidents")
 async def create_incident(data: IncidentCreate, _: User = Depends(require_roles("admin", "analyst")), db: AsyncSession = Depends(get_session)):
-    item = Incident(**data.model_dump())
-    db.add(item)
-    await db.commit()
-    await db.refresh(item)
-    return item
+    return await IncidentRepository.create_incident(data, db)
+
+@router.get("/incidents")
+async def incidents(descriptions: str | None = None, _: User = Depends(current_user), db: AsyncSession = Depends(get_session)):
+    statement = select(Incident)
+    if descriptions: 
+        statement = statement.where(Incident.description.ilike(f"%{q}%"))
+    return await IncidentRepository.get_all_incidents(statement, db)
+
 
 @router.post("/agents/run")
 async def agent_run(data: RunRequest, _: User = Depends(require_roles("admin", "analyst")), db: AsyncSession = Depends(get_session)): 

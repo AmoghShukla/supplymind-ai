@@ -54,8 +54,7 @@ class IncidentRepository:
         return item
 
     @staticmethod
-    async def get_all_incidents(db : AsyncSession):
-        statement = select(Incident)
+    async def get_all_incidents(statement, db : AsyncSession):
         incident = db.execute(statement)
         return incident.scalars().all()
 
