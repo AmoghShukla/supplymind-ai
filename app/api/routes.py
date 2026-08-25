@@ -8,7 +8,7 @@ from ..models import Approval, Incident, Shipment, User, Vendor
 from ..schemas.common import ApprovalDecision, IncidentCreate, Login, RunRequest, ShipmentCreate, Token, VendorCreate
 from ..agents.orchestrator import run_pipeline
 from ..models import AgentRun
-from ..repository import UserRepository, VendorRepository
+from ..repository import ShipmentRepository, UserRepository, VendorRepository
 
 router = APIRouter()
 
@@ -19,29 +19,22 @@ async def login(payload: Login, db: AsyncSession = Depends(get_session)):
         raise HTTPException(401, "Incorrect email or password")
     return Token(access_token=create_token(user.email, user.role))
 
+@router.post("/vendors")
+async def create_vendor(data: VendorCreate, _: User = Depends(require_roles("admin", "analyst")), db: AsyncSession = Depends(get_session)):
+    return await VendorRepository.create_vendor(data, db)
+
 @router.get("/vendors")
 async def vendors(_: User = Depends(current_user), db: AsyncSession = Depends(get_session)): 
     return await VendorRepository.get_all_vendors(db)
 
-@router.post("/vendors")
-async def create_vendor(data: VendorCreate, _: User = Depends(require_roles("admin", "analyst")), db: AsyncSession = Depends(get_session)):
-    item = Vendor(**data.model_dump())
-    db.add(item)
-    await db.commit()
-    await db.refresh(item)
-    return item
-
-@router.get("/shipments")
-async def shipments(_: User = Depends(current_user), db: AsyncSession = Depends(get_session)): 
-    return (await db.scalars(select(Shipment))).all()
-
 @router.post("/shipments")
 async def create_shipment(data: ShipmentCreate, _: User = Depends(require_roles("admin", "analyst")), db: AsyncSession = Depends(get_session)):
-    item = Shipment(**data.model_dump())
-    db.add(item)
-    await db.commit()
-    await db.refresh(item)
-    return item
+    return await ShipmentRepository.create_shipment(data, db)
+    
+@router.get("/shipments")
+async def shipments(_: User = Depends(current_user), db: AsyncSession = Depends(get_session)): 
+    return await ShipmentRepository.get_all_shipments(db)
+
 
 @router.get("/incidents")
 async def incidents(q: str | None = None, _: User = Depends(current_user), db: AsyncSession = Depends(get_session)):
