@@ -1,5 +1,6 @@
 import os
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test_supplymind.db"
+
 import pytest
 from app.db import engine, SessionLocal
 from app.models import Base
