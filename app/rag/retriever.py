@@ -2,8 +2,8 @@ import re
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..models import Incident
+
 async def hybrid_search(db: AsyncSession, query: str, limit: int = 5) -> list[dict]:
-    """Portable keyword/term-overlap retrieval; embeddings may be stored in `embedding` for pgvector upgrades."""
     terms = set(re.findall(r"[a-z0-9]+", query.lower()))
     rows = (await db.scalars(select(Incident))).all()
     scored = []
